@@ -1,0 +1,45 @@
+<!-- View for the edit_profile.php controller. Uses $view->saved, $view->errors,
+$view->photoPath, $view->username and $view->email, all set by the controller.
+The view only displays things, the logic checks are handled by the controller. -->
+<?php require('template/header.phtml'); ?>
+
+<!-- Shown only after a successful save. -->
+<?php if ($view->saved) { ?>
+    <div class="alert alert-success">Profile saved</div>
+<?php } ?>
+
+<!--One alert for each error from the controller -->
+<?php foreach ($view->errors as $error) { ?>
+    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+<?php } ?>
+
+<!-- enctype="multipart/form-data" is used for the form  to be able to send a file. -->
+<form method="post" action="edit_profile.php" enctype="multipart/form-data">
+    <!-- The current picture present. ?v=time() changes the address ach time so the
+    browser doesn't show an old cached picture after an upload. -->
+    <img src="<?php echo htmlspecialchars($view->photoPath); ?>?v=<?php echo time(); ?>"
+         alt="your profile picture" width="150" height="150" class="rounded-circle mb-3">
+
+    <!-- The username and email boxes start filled in with the current details -->
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" name="username" maxLength="30"
+               value="<?php echo htmlspecialchars($view->username); ?>">
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="text" class="form-control" id="email" name="email" maxLength="100"
+               value="<?php echo htmlspecialchars($view->email); ?>">
+    </div>
+
+    <!--Optional new picture. The accept=" " only filters the file chooser in
+    the browser so the controller checks the real file again. -->
+    <div class="mb-3">
+        <label for="photo" class="form-label">New Profile picture (JPEG or PNG, optional)</label>
+        <input type="file" class="form-control" id="photo" name="photo" accept="image/jpeg, image/png">
+    </div>
+
+    <!-- name="save" is what the controller searches to know that the form
+    was submitted. -->
+    <button type="submit" name="save" class="btn btn-primary">Save changes</button>
+</form>

@@ -1,0 +1,48 @@
+<!--View for the login.php controller. It uses $view->errorMessage and $view->captchaQuestion,
+both set by the controller. This view only displays things and then the logic checks
+take place inside the controller. -->
+<?php require('template/header.phtml') ?>
+
+<div class="container mt-4" style="max-width: 400px;">
+    <h1><b>Log in</b></h1>
+
+    <!-- Only shown if the controller sets an error message output with
+    htmlspecialchars (e.g. Invalid login, or a lockout.) -->
+    <?php if ($view->errorMessage): ?>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($view->errorMessage); ?></div>
+    <?php endif; ?>
+
+    <!--The form sends the username, password and captcha answer to login.php with
+    "POST", so that they're not put inside the URL. -->
+    <form method="post" action="login.php">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>  <!--required stops the form being
+                                                                        submitted empty, it's only a browser check
+                                                                        so the controller can validate it again.-->
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+
+        <!--The captcha question made by the controller, e.g. "what's 3+4?" -->
+        <div class="mb-3">
+            <label for="captchaResult" class="form-label">
+                <?php echo htmlspecialchars($view->captchaQuestion); ?>
+            </label>
+
+            <input type="text" class="form-control" id="captchaResult" name="captchaResult" required>
+        </div>
+
+        <!-- the name for the button is what the controller searches to know that the
+        form was actually submitted. -->
+        <button type="submit" class="btn btn-primary" name="loginButton">Log in</button>
+    </form>
+</div>
+
+
+<?php require('template/footer.phtml') ?>
+
+

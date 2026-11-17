@@ -1,0 +1,141 @@
+<!-- View for users.php aka the find friends page. Uses $view->users,
+$view->loggedIn, $view->currentUserId, $view->friendCount, $view->friendships,
+$view->page, $view->totalPages, $view->totalUsers, $view->search and $view->message. These
+are all set by the controller, the view only displays things and the controller makes the logical
+decisions. -->
+<?php require('template/header.phtml') ?>
+
+<!-- A one time message from the controller, "Friend request sent!", which is outputted
+through htmlspecialchars. -->
+<?php if (isset($view->message)) { ?>
+    <div class="alert alert-success">
+        <?php echo htmlspecialchars($view->message); ?>
+    </div>
+<?php } ?>
+
+<!-- Loops through this page's users and draws one card for each user -->
+<?php foreach ($view->users as $user) { ?>
+
+    <div class="card mb-3">
+        <div class="card-body d-flex align-items-center">
+            <img src="<?php echo htmlspecialchars($user->getPhotoPath()); ?>"
+                 alt="<?php echo htmlspecialchars($user->getUsername()); ?>"
+                 class="rounded-circle me-3" width="100" height="100">
+            <div>
+
+                <h5 class="mb-1 fw-bold"><?php echo htmlspecialchars($user->getUsername()); ?></h5>
+                <p class="text-muted mb-1">Hey there, I'm using FriendBook!</p>
+
+                <!-- Emails, friend counts and the friend buttons are only shown to logged-in users. -->
+                <?php if ($view->loggedIn) { ?>
+
+                    <p class="text-muted mb-1">Email: <?php echo htmlspecialchars($user->getEmail()); ?></p>
+
+                    <!--The friend count for a specific user, with singular and plural matching. -->
+                    <?php $friendCount = (int)$view->friendCount[$user->getId()];
+                    ?>
+                    <small> <?php
+                        echo $friendCount;
+                        if ($friendCount == 1) {
+                            echo ' friend';
+                        } else {
+                            echo ' friends';
+                        } ?>
+                    </small>
+
+                    <!--The friendships/pending requests between the logged-in user and that specific user. -->
+                    <?php
+                    $friendship = null;
+                    if (isset($view->friendships[$user->getId()])) {
+                        $friendship = $view->friendships[$user->getId()];
+                    }
+                    ?>
+
+                    <!-- No friend button is displayed on the logged-in user's own card. Otherwise,
+                    if there is no friendship, the request friend button appears, if a request is pending aka status=1,
+                    then it displays the request pending badge. Anything else other than that will just display the
+                    friends badge. -->
+                    <?php if ($user->getId() != $view->currentUserId) { ?>
+
+                        <?php if ($friendship == null) { ?>
+                            <form method="post" action="sendfriendrequest.php">
+                                <input type="hidden" name="receiverId" value="<?php echo (int)$user->getId(); ?>">
+                                <button type="submit" class="btn btn-primary">Request friend!</button>
+                            </form>
+                        <?php } else if ($friendship->getStatus() == "1") { ?>
+                            <span class="badge bg-warning text-dark">Request Pending</span>
+                        <?php } else { ?>
+                            <span class="badge bg-success">Friends!</span>
+                        <?php } ?>
+                    <?php } ?>
+
+                <?php } else { ?>
+                    <a class="btn btn-outline-primary" href="login.php">View profile</a>
+                <?php } ?>
+            </div>
+        </div>
+    </div>
+
+<?php } ?>
+
+<!-- Shown when the search doesn't match anyone. -->
+<?php if (empty($view->users)) { ?>
+    <p>No users found.</p>
+<?php } ?>
+
+<!--Works out which page numbers to show for the paging, the limits stop it going past the first
+or last page. -->
+<?php
+$startPage = $view->page - 1;
+$endPage = $view->page + 1;
+
+if ($startPage < 1) {
+    $startPage = 1;
+    $endPage = 3;
+}
+
+if ($endPage > $view->totalPages) {
+    $endPage = $view->totalPages;
+}
+?>
+
+<!-- These are the page links. In "N users." followed by page X of Y.
+The previous page, the numbered links, and the next page. http_build_query keeps
+the search text in the links and output comes with htmlspecialchars. -->
+<nav aria-label="User pages">
+    <p class="text-muted"><?php echo (int)$view->totalUsers; ?> users.
+        Page <?php echo (int)$view->page; ?> of <?php echo (int)$view->totalPages; ?>
+    </p>
+
+    <ul class="pagination">
+        <?php if ($view->page > 1) { ?>
+            <li class="page-item"><a class="page-link"
+                                     href="users.php?<?php echo htmlspecialchars(http_build_query(["search" => $view->search, "page" => $view->page - 1])); ?>">Previous</a>
+            </li>
+        <?php } ?>
+
+        <!-- One link for each page number in the window, the current page is shown as
+        plain highlighted text. -->
+        <?php for ($i = $startPage; $i <= $endPage; $i++) { ?>
+            <?php if ($i == $view->page) { ?>
+                <li class="page-item active"><span class="page-link"><?php echo $i; ?></span></li>
+            <?php } else { ?>
+
+                <li class="page-item"><a class="page-link"
+                                         href="users.php?<?php echo htmlspecialchars(http_build_query(["search" => $view->search, "page" => $i])); ?>"><?php echo $i; ?></a>
+                </li>
+            <?php } ?>
+        <?php } ?>
+
+
+        <?php if ($view->page < $view->totalPages) { ?>
+            <li class="page-item"><a class="page-link"
+                                     href="users.php?<?php echo htmlspecialchars(http_build_query(["search" => $view->search, "page" => $view->page + 1])); ?>">Next</a>
+            </li>
+
+        <?php } ?>
+    </ul>
+</nav>
+
+
+<?php require('template/footer.phtml') ?>
